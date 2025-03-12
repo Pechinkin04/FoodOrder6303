@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct FoodOrder6303App: App {
+    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    @StateObject private var firestoreService = FirestoreService.shared
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DishesView()
+                .environmentObject(firestoreService)
         }
     }
 }
