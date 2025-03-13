@@ -11,6 +11,14 @@ import FirebaseFirestore
 
 class DishesVM: ObservableObject {
     @Published var dishes: [Dish] = []
+    @Published var searchDish: String = ""
+    var dishFilter: [Dish] {
+        if searchDish.isEmpty {
+            return dishes
+        } else {
+            return dishes.filter { $0.name.lowercased().contains(searchDish.lowercased()) }
+        }
+    }
 
     private var db = Firestore.firestore()
     
@@ -35,5 +43,30 @@ class DishesVM: ObservableObject {
             
         }
 
+    }
+    
+    @Published var isLoad: Bool = false
+    @Published var alertItem: AlertItem?
+    
+    public func upload(dish: Dish, newImages: [UIImage]) {
+        isLoad = true
+        Task {
+            do {
+                try await FirestoreService.shared.uploadDish(dish, images: newImages)
+                DispatchQueue.main.async {
+                    self.isLoad = false
+                }
+            } catch {
+                DispatchQueue.main.async { [self] in
+                if let apError = error as? APError {
+                    alertItem = apError.alert
+                } else {
+                    alertItem = APError.invalidError.alert
+                }
+                print(error.localizedDescription)
+                    isLoad = false
+                }
+            }
+        }
     }
 }

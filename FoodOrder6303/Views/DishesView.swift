@@ -9,49 +9,59 @@ import SwiftUI
 
 struct DishesView: View {
     @StateObject var dishVM = DishesVM()
-    @State private var dishes: [Dish] = []
     
-    @EnvironmentObject private var fsSerivce: FirestoreService
+    private var fsSerivce = FirestoreService.shared
+    
+    @State private var dishPick: Dish?
     
     var body: some View {
-        NavigationStack {
-            ZStack {
+        ZStack {
+            NavigationStack {
+                
                 info
                     .animation(.default, value: dishVM.dishes.count)
                 
                     .navigationTitle("Delvel")
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
-                            NavigationLink {
-                                AddEditDishView()
+                            Button {
+                                dishPick = Dish()
                             } label: {
                                 Image(systemName: "plus.circle")
                             }
+                            .opacity(dishVM.isLoad ? 0 : 1)
                         }
                     }
                 
-                LoadProgressView()
-                    .opacity(fsSerivce.isLoad ? 1 : 0)
-                    .animation(.spring, value: fsSerivce.isLoad)
+                    .navigationDestination(item: $dishPick, destination: { dish in
+                        AddEditDishView(dish: dish, isNew: dish.name.isEmpty)
+                            .environmentObject(dishVM)
+                    })
+                
+                    .searchable(text: $dishVM.searchDish, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск блюда")
             }
+            .onAppear {
+                dishVM.fetchDishes()
+            }
+            
+            .alert(item: $dishVM.alertItem) { alertItem in
+                Alert(title:         alertItem.title,
+                      message:       alertItem.message,
+                      dismissButton: alertItem.btns)
+            }
+            
+            LoadProgressView()
+                .opacity(dishVM.isLoad ? 1 : 0)
+                .animation(.spring, value: dishVM.isLoad)
         }
-        .onAppear {
-            dishVM.fetchDishes()
-        }
-//        .refreshable {
-//            fetchDishes()
-//        }
-//        .onAppear {
-//            fetchDishes()
-//        }
     }
     
     var info: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 10) {
-                ForEach(dishVM.dishes) { dish in
-                    NavigationLink {
-                        AddEditDishView(dish: dish, isNew: false)
+            LazyVStack(spacing: 10) {
+                ForEach(dishVM.dishFilter) { dish in
+                    Button {
+                        dishPick = dish
                     } label: {
                         HStack(spacing: 10) {
                             AppetizerRemoteImage(urlString: dish.img.first?.imgUrl ?? "")
@@ -89,29 +99,8 @@ struct DishesView: View {
         }
     }
     
-    private func fetchDishes() {
-        DispatchQueue.main.async {
-//            let fsService = FirestoreService()
-            
-            FirestoreService.shared.fetchAllDishes { result in
-                switch result {
-                    case .success(let dishes):
-                        print("Получено \(dishes.count) блюд")
-                        //                for dish in dishes {
-                        //                    print(dish.name)  // Выводим имя каждого блюда
-                        //                }
-                        DispatchQueue.main.async {
-                            self.dishes = dishes
-                        }
-                    case .failure(let error):
-                        print("Ошибка при загрузке блюд: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
 }
 
 #Preview {
     DishesView()
-        .environmentObject(FirestoreService.shared)
 }

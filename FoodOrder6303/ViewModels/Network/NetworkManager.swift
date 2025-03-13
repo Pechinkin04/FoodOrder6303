@@ -48,9 +48,9 @@ final class NetworkManager {
             let fileNameWithoutExtension = url.deletingPathExtension().lastPathComponent
             cacheKey = NSString(string: fileNameWithoutExtension)
             cacheKey = NSString(string: url.lastPathComponent)
-            print(cacheKey)
+//            print(cacheKey)
             if let image = cache.object(forKey: cacheKey) {
-                print("image found: \(cacheKey)")
+//                print("image found: \(cacheKey)")
                 completed(image)
                 return
             }

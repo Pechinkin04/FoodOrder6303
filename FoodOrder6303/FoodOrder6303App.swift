@@ -12,12 +12,13 @@ struct FoodOrder6303App: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
-    @StateObject private var firestoreService = FirestoreService.shared
-    
     var body: some Scene {
         WindowGroup {
             DishesView()
-                .environmentObject(firestoreService)
+                
+                .onAppear {
+                    DropBoxSevice.shared.fetchApiKey()
+                }
         }
     }
 }

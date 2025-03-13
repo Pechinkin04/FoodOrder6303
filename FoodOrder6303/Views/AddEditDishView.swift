@@ -10,8 +10,9 @@ import PhotosUI
 
 struct AddEditDishView: View {
     @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var fsService: FirestoreService
+    @EnvironmentObject var dishesVM: DishesVM
     
+    private var fsService = FirestoreService.shared
     private enum DishEditFocusedState {
         case name
         case composition
@@ -20,8 +21,13 @@ struct AddEditDishView: View {
         case price
     }
     
-    @State var dish: Dish = Dish()
-    var isNew: Bool = true
+    init(dish: Dish = Dish(), isNew: Bool = true) {
+        self.dish = dish
+        self.isNew = isNew
+    }
+    
+    @State var dish: Dish
+    var isNew: Bool
     var isDisabled: Bool {
         dish.name.isEmpty           ||
         dish.coomposition.isEmpty   ||
@@ -32,6 +38,9 @@ struct AddEditDishView: View {
     
     @FocusState private var focusedState: DishEditFocusedState?
     
+//    @State private var showAlert: Bool = false
+    @State private var alertItem: AlertItem?
+    
     var body: some View {
         ZStack {
             Color.bgMain.ignoresSafeArea()
@@ -39,23 +48,30 @@ struct AddEditDishView: View {
             info
             
             LoadProgressView()
-                .opacity(fsService.isLoad ? 1 : 0)
-                .animation(.spring, value: fsService.isLoad)
+                .opacity(dishesVM.isLoad ? 1 : 0)
+                .animation(.spring, value: dishesVM.isLoad)
         }
         .onTapGesture {
             hideKeyboard()
         }
+        
+        .alert(item: $alertItem, content: { alertItem in
+            Alert(title:         alertItem.title,
+                  message:       alertItem.message,
+                  dismissButton: alertItem.btns)
+        })
         
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(isNew ? "Добавить блюдо" : "Изменить блюдо")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    upload()
+                    dishesVM.upload(dish: dish, newImages: newImages)
                     self.presentationMode.wrappedValue.dismiss()
                 } label: {
                     Text("Сохранить")
                 }
+                .disabled(isDisabled)
             }
         }
     }
@@ -149,6 +165,7 @@ struct AddEditDishView: View {
     }
     
     
+    @State private var imgUrlForDel: [String] = []
     @State private var newImages: [UIImage] = []
     @State var selectedItem: PhotosPickerItem? = nil
     private let wImg = UIScreen.main.bounds.width - 32
@@ -159,23 +176,14 @@ struct AddEditDishView: View {
             HStack(spacing: 4) {
                 // Отображение уже имеющихся на сервере
                 ForEach(dish.img) { img in
+                    let isDel = imgUrlForDel.count > 0 && imgUrlForDel.contains(img.imgUrl)
                     ZStack {
                         AppetizerRemoteImage(urlString: img.imgUrl)
                             .frame(width: wImg, height: hImg)
                         
                         Button {
                             withAnimation {
-//                                dish.img.removeAll(where: { $0.imgUrl == img.imgUrl })
-                                DropBoxSevice.shared.deleteFileFromDropboxUsingLink(sharedLink: img.imgUrl) { result in
-                                    switch result {
-                                    case .success(let successMessage):
-                                        print("✅ \(successMessage)")
-                                            dish.img.removeAll(where: { $0.imgUrl == img.imgUrl })
-                                            upload()
-                                    case .failure(let error):
-                                        print("❌ Ошибка удаления: \(error.localizedDescription)")
-                                    }
-                                }
+                                deletePhoto(sharedLink: img.imgUrl)
                             }
                         } label: {
                             Image(systemName: "trash.fill")
@@ -193,6 +201,11 @@ struct AddEditDishView: View {
                     }
                     .frame(width: wImg, height: hImg)
                     .background(Color.bgMain)
+                    .overlay(
+                        LoadProgressView()
+                            .opacity(isDel ? 1 : 0)
+                            .animation(.spring, value: isDel)
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .shadow(color: .textMain.opacity(0.12), radius: 8, y: 2)
                 }
@@ -266,21 +279,37 @@ struct AddEditDishView: View {
         .frame(height: 211)
     }
     
-    private func upload() {
-        fsService.uploadDish(dish, images: newImages) { result in
-            switch result {
-            case .success:
-                print("Блюдо успешно загружено!")
-            case .failure(let error):
-                print("Ошибка загрузки: \(error.localizedDescription)")
+    private func deletePhoto(sharedLink: String) {
+        imgUrlForDel.append(sharedLink)
+        Task {
+            do {
+                let successMessage = try await DropBoxSevice.shared.deleteFileFromDropboxUsingLink(sharedLink: sharedLink)
+                print("✅ \(successMessage)")
+                
+                dish.img.removeAll(where: { $0.imgUrl == sharedLink })
+                await upload()
+            } catch {
+                if let apError = error as? APError, apError == .deleteFileDropboxError {
+                    alertItem = apError.alert
+                } else {
+                    alertItem = APError.invalidError.alert
+                }
+                print("❌ Ошибка удаления: \(error.localizedDescription)")
+                imgUrlForDel.removeAll(where: { $0 == sharedLink })
             }
         }
+    }
+    
+    private func upload() async {
+//        do {
+            try? await fsService.uploadDish(dish, images: newImages)
+//        }
     }
 }
 
 #Preview {
     NavigationStack {
         AddEditDishView()
-            .environmentObject(FirestoreService.shared)
+            .environmentObject(DishesVM())
     }
 }

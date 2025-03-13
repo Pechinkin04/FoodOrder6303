@@ -46,7 +46,7 @@ struct RemoteImage: View {
                     .aspectRatio(contentMode: .fill)
             }
         }
-        .animation(.default, value: image)
+        .animation(.snappy, value: image)
     }
 }
 
@@ -62,5 +62,6 @@ struct AppetizerRemoteImage: View {
             .onChange(of: urlString) {
                 imageLoader.load(fromURLString: urlString)
             }
+//            .animation(.smooth, value: urlString)
     }
 }

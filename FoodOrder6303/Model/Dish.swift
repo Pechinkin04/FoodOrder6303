@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct Dish: Identifiable, Codable {
+struct Dish: Identifiable, Codable, Hashable {
     var id: UUID = UUID()
     
     var name:           String
@@ -41,7 +41,7 @@ struct Dish: Identifiable, Codable {
     }
 }
 
-struct ImageDish: Identifiable, Codable {
+struct ImageDish: Identifiable, Codable, Hashable {
     var id: UUID = UUID()
     var imgUrl: String // Только URL изображения
     
