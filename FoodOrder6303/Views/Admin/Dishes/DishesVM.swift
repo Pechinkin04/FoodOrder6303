@@ -19,6 +19,8 @@ class DishesVM: ObservableObject {
             return dishes.filter { $0.name.lowercased().contains(searchDish.lowercased()) }
         }
     }
+    
+    @Published var delDishPick: Dish?
 
     private var db = Firestore.firestore()
     
@@ -68,5 +70,31 @@ class DishesVM: ObservableObject {
                 }
             }
         }
+    }
+    
+    public func delDish() {
+        guard let dish = delDishPick else { return }
+        
+        isLoad = true
+        Task {
+            do {
+                try await FirestoreService.shared.deleteDish(dish)
+                print("Блюдо успешно удалено")
+                DispatchQueue.main.async {
+                    self.isLoad = false
+                }
+            } catch {
+                DispatchQueue.main.async { [self] in
+                if let apError = error as? APError {
+                    alertItem = apError.alert
+                } else {
+                    alertItem = APError.invalidError.alert
+                }
+                    print("Ошибка при удалении блюда: \(error.localizedDescription)")
+                    isLoad = false
+                }
+            }
+        }
+
     }
 }

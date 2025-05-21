@@ -32,6 +32,15 @@ struct DishesView: View {
                             .opacity(dishVM.isLoad ? 0 : 1)
                         }
                     }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            NavigationLink {
+                                AboutUsView()
+                            } label: {
+                                Image(systemName: "info.circle")
+                            }
+                        }
+                    }
                 
                     .navigationDestination(item: $dishPick, destination: { dish in
                         AddEditDishView(dish: dish, isNew: dish.name.isEmpty)
@@ -48,6 +57,14 @@ struct DishesView: View {
                 Alert(title:         alertItem.title,
                       message:       alertItem.message,
                       dismissButton: alertItem.btns)
+            }
+            
+            .alert(item: $dishVM.delDishPick) { dish in
+                Alert(title: Text("Удалить \(dish.name)?"),
+                      primaryButton: .cancel(Text("Отмена")),
+                      secondaryButton: .destructive(Text("Удалить"), action: {
+                    dishVM.delDish()
+                }))
             }
             
             LoadProgressView()
@@ -74,6 +91,8 @@ struct DishesView: View {
                                     .foregroundStyle(.textMain)
                                     .multilineTextAlignment(.leading)
                                 
+                                Spacer()
+                                
                                 HStack(spacing: -4) {
                                     Image(systemName: "rublesign")
                                         .font(.system(size: 12, weight: .semibold))
@@ -82,9 +101,19 @@ struct DishesView: View {
                                         .font(.system(size: 16, weight: .bold))
                                     
                                     Spacer()
+                                    
+                                    Button {
+                                        dishVM.delDishPick = dish
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 18, weight: .bold))
+                                            .foregroundStyle(.textMain)
+                                            .padding(2)
+                                    }
                                 }
                                 .foregroundStyle(Color.textMain)
                             }
+                            .padding(.vertical, 16)
                         }
                         .padding(10)
                         .background(
@@ -96,6 +125,7 @@ struct DishesView: View {
                 }
             }
             .padding(16)
+            .animation(.default, value: dishVM.dishes.count)
         }
     }
     

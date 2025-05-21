@@ -15,6 +15,15 @@ enum APError: Error {
     
     // MARK: - FireStore
     case uploadDishError
+    case invalidCredentials
+    case accountCreationError
+    case accountUpdateError
+    case accountDeletionError
+    case deleteDishError
+    
+    case orderCreationError
+    case orderUpdateError
+    case orderDeleteError
     
     // MARK: - Dropbox
     case uploadFileDropboxError
@@ -33,6 +42,37 @@ enum APError: Error {
             case .uploadDishError: AlertItem(title: Text("Ошибка загрузки блюда"),
                                              message: Text("Не удалось загрузить блюдо, попробуйте позже."),
                                              btns: .default(Text("Ок")))
+                
+            case .invalidCredentials: AlertItem(title: Text("Ошибка авторизации"),
+                                                message: Text("Ошибка при проверке аккаунта"),
+                                                btns: .default(Text("Ок")))
+                
+            case .accountCreationError: AlertItem(title: Text("Ошибка создания аккаунта"),
+                                                  message: Text("Не удалось создать аккаунт. Попробуйте позже."),
+                                                  btns: .default(Text("Ок")))
+                
+            case .accountUpdateError: AlertItem(title: Text("Ошибка обновления аккаунта"),
+                                                message: Text("Не удалось обновить аккаунт. Попробуйте позже."),
+                                                btns: .default(Text("Ок")))
+            case .accountDeletionError: AlertItem(title: Text("Ошибка удаления аккаунта"),
+                                                  message: Text("Не удалось удалить аккаунт. Попробуйте позже."),
+                                                  btns: .default(Text("Ок")))
+                
+            case .deleteDishError: AlertItem(title: Text("Ошибка при удалении блюда"),
+                                             message: Text("Попробуйте позже"),
+                                             btns: .default(Text("Ок")))
+                
+            case .orderCreationError: AlertItem(title: Text("Ошибка создания заказа"),
+                                                message: Text("Попробуйте позже"),
+                                                btns: .default(Text("Ок")))
+                
+            case .orderUpdateError: AlertItem(title: Text("Ошибка обновления заказа"),
+                                                message: Text("Попробуйте позже"),
+                                                btns: .default(Text("Ок")))
+                
+            case .orderDeleteError: AlertItem(title: Text("Ошибка при удалении заказа"),
+                                                message: Text("Попробуйте позже"),
+                                                btns: .default(Text("Ок")))
                 
             // MARK: - DropBox
                 

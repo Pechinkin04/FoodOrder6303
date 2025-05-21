@@ -14,7 +14,8 @@ struct FoodOrder6303App: App {
     
     var body: some Scene {
         WindowGroup {
-            DishesView()
+//            DishesView()
+            MainView()
                 
                 .onAppear {
                     DropBoxSevice.shared.fetchApiKey()
