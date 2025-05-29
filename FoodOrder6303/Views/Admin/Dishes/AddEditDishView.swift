@@ -66,12 +66,48 @@ struct AddEditDishView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    if dish.name.count < 2 {
+                        alertItem = AlertItem(title: Text("Ошибка"),
+                                              message: Text("Название блюда должно содержать минимум 2 символа."),
+                                              btns: .default(Text("OK")))
+                        return
+                    }
+                    
+                    if dish.name.count > 200 {
+                        alertItem = AlertItem(title: Text("Ошибка"),
+                                              message: Text("Название блюда не должно превышать 200 символов."),
+                                              btns: .default(Text("OK")))
+                        return
+                    }
+                    
+                    if dish.weight < 20 || dish.weight > 3000 {
+                        alertItem = AlertItem(title: Text("Ошибка"),
+                                              message: Text("Вес блюда должен быть от 20 до 3000 граммов."),
+                                              btns: .default(Text("OK")))
+                        return
+                    }
+
+                    if dish.price < 80 || dish.price > 3500 {
+                        alertItem = AlertItem(title: Text("Ошибка"),
+                                              message: Text("Стоимость блюда должна быть от 80 до 3500 рублей."),
+                                              btns: .default(Text("OK")))
+                        return
+                    }
+                    
+                    if dish.ccal < 1 || dish.ccal > 2000 {
+                        alertItem = AlertItem(title: Text("Ошибка"),
+                                              message: Text("Калорийность должна быть от 1 до 2000 ккал."),
+                                              btns: .default(Text("OK")))
+                        return
+                    }
+                    
                     dishesVM.upload(dish: dish, newImages: newImages)
                     self.presentationMode.wrappedValue.dismiss()
                 } label: {
                     Text("Сохранить")
                 }
                 .disabled(isDisabled)
+
             }
         }
     }

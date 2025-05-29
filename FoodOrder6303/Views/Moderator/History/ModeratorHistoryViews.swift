@@ -26,6 +26,10 @@ struct ModeratorHistoryViews: View {
         }
     }
     
+    var couriers: [Client] {
+        mainVM.accounts.filter { $0.role == .courier }
+    }
+    
     var info: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(alignment: .leading, spacing: 8, pinnedViews: [.sectionHeaders]) {
@@ -33,12 +37,14 @@ struct ModeratorHistoryViews: View {
                 if !activeOrders.isEmpty {
                     Section(header: pinnedActive) {
                         ForEach(activeOrders) { order in
+                            let courier = couriers.first(where: { $0.id == order.courierID })
+                            
                             NavigationLink {
                                 ModeratorOrderView(order: order)
                                     .navigationBarBackButtonHidden()
                                     .environmentObject(vm)
                             } label: {
-                                ClientOrderCard(order: order)
+                                ClientWithCourier(order: order, courier: courier)
                                     .padding(.horizontal, 20)
                             }
                         }
@@ -50,12 +56,14 @@ struct ModeratorHistoryViews: View {
                 if !pastOrders.isEmpty {
                     Section(header: pinnedPast) {
                         ForEach(pastOrders) { order in
+                            let courier = couriers.first(where: { $0.id == order.courierID })
+                            
                             NavigationLink {
                                 ModeratorOrderView(order: order)
                                     .navigationBarBackButtonHidden()
                                     .environmentObject(vm)
                             } label: {
-                                ClientOrderCard(order: order)
+                                ClientWithCourier(order: order, courier: courier)
                                     .padding(.horizontal, 20)
                             }
                         }

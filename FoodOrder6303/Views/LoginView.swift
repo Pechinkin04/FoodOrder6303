@@ -32,6 +32,12 @@ struct LoginView: View {
         .onTapGesture {
             hideKeyboard()
         }
+        .onAppear {
+            mainVM.login = "exampl@gmail.com"
+            mainVM.nameAccount = "ffff"
+            mainVM.password = "ffff234"
+            mainVM.phoneAccount = "+79271234567"
+        }
         .alert(item: $mainVM.alertItem, content: { alertItem in
             Alert(title:         alertItem.title,
                   message:       alertItem.message,
@@ -99,7 +105,14 @@ struct LoginView: View {
             return
         }
 
-        guard validateLogin(), validatePassword(), validateName(), validatePhone(), validateEmail() else { return }
+        guard validateLogin(),
+              validatePassword(),
+              validateName(),
+              validatePhone(),
+              validateEmail(),
+              validateUniqueLogin()
+        else { return }
+
         mainVM.createAccount()
     }
 
@@ -156,6 +169,17 @@ struct LoginView: View {
         }
         return true
     }
+    
+    private func validateUniqueLogin() -> Bool {
+        if mainVM.accounts.contains(where: { $0.login.lowercased() == mainVM.login.lowercased() }) {
+            mainVM.alertItem = AlertItem(title: Text("Ошибка"),
+                                         message: Text("Такой логин уже существует. Введите другой."),
+                                         btns: .default(Text("Ок")))
+            return false
+        }
+        return true
+    }
+
 }
 
 #Preview {

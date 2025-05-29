@@ -69,18 +69,31 @@ struct ClientAccountView: View {
             
             VStack(spacing: 8) {
                 if let account = mainVM.account {
-                    ForEach(account.adresses.indices, id: \.self) { adrInd in
+                    ForEach(account.adresses) { address in
                         HStack(spacing: 2) {
-                            Text("\(adrInd + 1)")
+                            Text("\(mainVM.account?.adresses.firstIndex(where: { $0.id == address.id }) ?? 0 + 1)")
                                 .font(.system(size: 17, weight: .semibold))
                                 .padding(.horizontal, 4)
                                 .frame(width: 50, alignment: .leading)
+
                             TextField("Адрес", text: Binding(
-                                get: { mainVM.account?.adresses[adrInd].name ?? "" },
+                                get: {
+                                    mainVM.account?.adresses.first(where: { $0.id == address.id })?.name ?? ""
+                                },
                                 set: { newValue in
-                                    mainVM.account?.adresses[adrInd].name = newValue
+                                    if let index = mainVM.account?.adresses.firstIndex(where: { $0.id == address.id }) {
+                                        mainVM.account?.adresses[index].name = newValue
+                                    }
                                 }
                             ))
+
+                            Button {
+                                if let index = mainVM.account?.adresses.firstIndex(where: { $0.id == address.id }) {
+                                    mainVM.account?.adresses.remove(at: index)
+                                }
+                            } label: {
+                                Image(systemName: "trash.fill")
+                            }
                         }
                         .padding(.vertical, 6)
                         .foregroundStyle(.textMain)
@@ -92,8 +105,8 @@ struct ClientAccountView: View {
                         )
                     }
                 }
-
             }
+
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

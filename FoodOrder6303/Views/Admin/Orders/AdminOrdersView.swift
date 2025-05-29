@@ -24,6 +24,10 @@ struct AdminOrdersView: View {
         }
     }
     
+    var couriers: [Client] {
+        mainVM.accounts.filter { $0.role == .courier }
+    }
+    
     var info: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVStack(alignment: .leading, spacing: 8, pinnedViews: [.sectionHeaders]) {
@@ -31,13 +35,15 @@ struct AdminOrdersView: View {
                 if !activeOrders.isEmpty {
                     Section(header: pinnedActive) {
                         ForEach(activeOrders) { order in
+                            let courier = couriers.first(where: { $0.id == order.courierID })
+                            
                             NavigationLink {
                                 AdminOrderView(order: order)
                                     .navigationBarBackButtonHidden()
                                     .environmentObject(vm)
                                     .environmentObject(mainVM)
                             } label: {
-                                ClientOrderCard(order: order)
+                                ClientWithCourier(order: order, courier: courier)
                                     .padding(.horizontal, 20)
                             }
                         }
@@ -49,13 +55,15 @@ struct AdminOrdersView: View {
                 if !pastOrders.isEmpty {
                     Section(header: pinnedPast) {
                         ForEach(pastOrders) { order in
+                            let courier = couriers.first(where: { $0.id == order.courierID })
+                            
                             NavigationLink {
                                 AdminOrderView(order: order)
                                     .navigationBarBackButtonHidden()
                                     .environmentObject(vm)
                                     .environmentObject(mainVM)
                             } label: {
-                                ClientOrderCard(order: order)
+                                ClientWithCourier(order: order, courier: courier)
                                     .padding(.horizontal, 20)
                             }
                         }
@@ -116,4 +124,20 @@ struct AdminOrdersView: View {
     AdminOrdersView()
         .environmentObject(AdminVM())
         .environmentObject(MainVM())
+}
+
+struct ClientWithCourier: View {
+    var order:   Order
+    var courier: Client?
+    
+    var body: some View {
+        ClientOrderCard(order: order)
+            .overlay(
+                Text(courier?.name ?? "")
+                    .font(.caption)
+                    .foregroundStyle(Color.black)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.trailing, 6)
+            )
+    }
 }
